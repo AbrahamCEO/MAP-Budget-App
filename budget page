@@ -1,0 +1,143 @@
+package com.example.myapplication
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContent {
+                BudgetScreen()
+        }
+    }
+}
+
+@Composable
+fun BudgetScreen() {
+    var budgets by remember { mutableStateOf(listOf<Pair<String, Double>>()) }
+    var showDialog by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
+        ) {
+            budgets.forEachIndexed { index, budget ->
+                BudgetItem(
+                    title = budget.first,
+                    amount = budget.second,
+                    onClick = {
+                        // Handle budget item click
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
+                        .background(MaterialTheme.colors.surface, shape = MaterialTheme.shapes.medium)
+                        .shadow(1.dp)
+                        .clickable { /* Handle item click here */ }
+                        .padding(16.dp)
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(
+            onClick = { showDialog = true },
+            modifier = Modifier.align(Alignment.End)
+        ) {
+            Text("Add Budget")
+        }
+    }
+
+    if (showDialog) {
+        AddBudgetDialog(
+            onDismiss = { showDialog = false },
+            onAddBudget = { title, amount ->
+                budgets = budgets + (title to amount)
+                showDialog = false
+            }
+        )
+    }
+}
+
+@Composable
+fun BudgetItem(title: String, amount: Double, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    Row(modifier = modifier) {
+        Text(text = title, fontSize = 20.sp, modifier = Modifier.weight(1f))
+        Text(text = "$${String.format("%.2f", amount)}", fontSize = 20.sp)
+    }
+}
+
+@Composable
+fun AddBudgetDialog(onDismiss: () -> Unit, onAddBudget: (String, Double) -> Unit) {
+    var title by remember { mutableStateOf(TextFieldValue()) }
+    var amount by remember { mutableStateOf(TextFieldValue()) }
+
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            shape = MaterialTheme.shapes.medium,
+            color = MaterialTheme.colors.background,
+            elevation = 8.dp
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxWidth()
+            ) {
+                Text("Add Budget", fontSize = 24.sp, modifier = Modifier.padding(bottom = 16.dp))
+                OutlinedTextField(
+                    value = title,
+                    onValueChange = { title = it },
+                    label = { Text("Budget Title") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = amount,
+                    onValueChange = { amount = it },
+                    label = { Text("Budget Amount") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Row(
+                    modifier = Modifier.align(Alignment.End)
+                ) {
+                    TextButton(onClick = onDismiss) {
+                        Text("Cancel")
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Button(
+                        onClick = {
+                            val amountDouble = amount.text.toDoubleOrNull()
+                            if (amountDouble != null) {
+                                onAddBudget(title.text, amountDouble)
+                            }
+                        }
+                    ) {
+                        Text("Add")
+                    }
+                }
+            }
+        }
+    }
+}
