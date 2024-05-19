@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 
-class MainActivity : ComponentActivity() {
+class budget : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -32,6 +32,7 @@ class MainActivity : ComponentActivity() {
 fun BudgetScreen() {
     var budgets by remember { mutableStateOf(listOf<Pair<String, Double>>()) }
     var showDialog by remember { mutableStateOf(false) }
+    var selectedBudget by remember { mutableStateOf<Pair<String, Double>?>(null) }
 
     Column(
         modifier = Modifier
@@ -48,7 +49,8 @@ fun BudgetScreen() {
                     title = budget.first,
                     amount = budget.second,
                     onClick = {
-                        // Handle budget item click
+                        selectedBudget = budget
+                        showDialog = true
                     },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -70,15 +72,101 @@ fun BudgetScreen() {
     }
 
     if (showDialog) {
-        AddBudgetDialog(
-            onDismiss = { showDialog = false },
-            onAddBudget = { title, amount ->
-                budgets = budgets + (title to amount)
-                showDialog = false
-            }
-        )
+        selectedBudget?.let { budget ->
+            EditBudgetDialog(
+                budget = budget,
+                onDismiss = { showDialog = false },
+                onUpdateBudget = { title, amount ->
+                    budgets = budgets.map {
+                        if (it == budget) title to amount else it
+                    }
+                },
+                onDeleteBudget = {
+                    budgets = budgets.filterNot { it == budget }
+                }
+            )
+        } ?: run {
+            AddBudgetDialog(
+                onDismiss = { showDialog = false },
+                onAddBudget = { title, amount ->
+                    budgets = budgets + (title to amount)
+                    showDialog = false
+                }
+            )
+        }
     }
 }
+
+@Composable
+fun EditBudgetDialog(
+    budget: Pair<String, Double>,
+    onDismiss: () -> Unit,
+    onUpdateBudget: (String, Double) -> Unit,
+    onDeleteBudget: () -> Unit
+) {
+    var title by remember { mutableStateOf(TextFieldValue(budget.first)) }
+    var amount by remember { mutableStateOf(TextFieldValue(budget.second.toString())) }
+
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            shape = MaterialTheme.shapes.medium,
+            color = MaterialTheme.colors.background,
+            elevation = 8.dp
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxWidth()
+            ) {
+                Text("Edit Budget", fontSize = 24.sp, modifier = Modifier.padding(bottom = 16.dp))
+                OutlinedTextField(
+                    value = title,
+                    onValueChange = { title = it },
+                    label = { Text("Budget Title") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = amount,
+                    onValueChange = { amount = it },
+                    label = { Text("Budget Amount") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Row(
+                    modifier = Modifier.align(Alignment.End)
+                ) {
+                    TextButton(onClick = onDismiss) {
+                        Text("Cancel")
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Button(
+                        onClick = {
+                            val amountDouble = amount.text.toDoubleOrNull()
+                            if (amountDouble != null) {
+                                onUpdateBudget(title.text, amountDouble)
+                                onDismiss()
+                            }
+                        }
+                    ) {
+                        Text("Update")
+                    }
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                Button(
+                    onClick = {
+                        onDeleteBudget()
+                        onDismiss()
+                    },
+                    modifier = Modifier.align(Alignment.End)
+                ) {
+                    Text("Delete")
+                }
+            }
+        }
+    }
+}
+
 
 @Composable
 fun BudgetItem(title: String, amount: Double, onClick: () -> Unit, modifier: Modifier = Modifier) {
