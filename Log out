@@ -1,0 +1,124 @@
+package com.test.smartspend.screens
+
+import android.content.Context
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.Divider
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.test.mapproject.MainActivity
+import com.test.mapproject.R
+
+@Composable
+fun Profile(username: String, accountnumber: String, context: Context) {
+    val showDialog = remember { mutableStateOf(false) }
+
+    if (showDialog.value) {
+        AlertDialog(
+            onDismissRequest = { showDialog.value = false },
+            title = { Text(text = "Logout") },
+            text = { Text(text = "Are you sure you want to leave the app?") },
+            confirmButton = {
+                Button(onClick = { 
+                    showDialog.value = false
+                    // Navigate to MainActivity
+                    context.startActivity(Intent(context, MainActivity::class.java))
+                }) {
+                    Text("Yes")
+                }
+            },
+            dismissButton = {
+                Button(onClick = { showDialog.value = false }) {
+                    Text("No")
+                }
+            }
+        )
+    }
+
+    Column(
+        modifier = Modifier
+            .padding(12.dp)
+            .fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(100.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(text = "Profile", fontSize = 33.sp)
+        }
+
+        Image(
+            painter = painterResource(id = R.drawable.logo1),
+            contentDescription = null,
+            modifier = Modifier.size(250.dp)
+        )
+        Divider(color = Color.DarkGray, thickness = 1.dp)
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 4.dp, end = 4.dp, top = 12.dp)
+        ) {
+            Text(text = "Username: $username", fontSize = 24.sp)
+        }
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 4.dp, end = 4.dp, top = 12.dp)
+        ) {
+            Text(text = "Account Number: $accountnumber", fontSize = 24.sp)
+        }
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.Bottom,
+            horizontalAlignment = Alignment.Start
+        ) {
+            Spacer(modifier = Modifier.size(20.dp))
+            Divider(color = Color.DarkGray, thickness = 1.dp)
+            Spacer(modifier = Modifier.size(20.dp))
+            TextButton(
+                onClick = { /*TODO*/ },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(color = Color.Black)
+            ) {
+                Text("Edit Profile", fontSize = 20.sp, color = Color.White)
+            }
+            Spacer(modifier = Modifier.size(20.dp))
+            TextButton(
+                onClick = { showDialog.value = true },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(color = Color.Black)
+            ) {
+                Text("Logout", fontSize = 20.sp, color = Color.White)
+            }
+        }
+    }
+}
